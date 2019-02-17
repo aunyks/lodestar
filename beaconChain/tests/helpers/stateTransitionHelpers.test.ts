@@ -10,7 +10,7 @@ import {
   getDomain,
   getEpochCommitteeCount,
   getEpochStartSlot,
-  getForkVersion, getPreviousEpoch,
+  getForkVersion, getPreviousEpoch, getTotalBalance,
   intSqrt,
   isActiveValidator,
   isDoubleVote,
@@ -19,11 +19,12 @@ import {
   slotToEpoch,
   split,
 } from "../../helpers/stateTransitionHelpers";
-import {BeaconState, Epoch, Fork, Slot, uint64, Validator} from "../../types";
+import {BeaconState, Epoch, Fork, Slot, uint64, Validator, ValidatorIndex} from "../../types";
 import {generateAttestationData} from "../utils/attestation";
 import {randBetween} from "../utils/misc";
-import {generateValidator} from "../utils/validator";
+import {generateValidator, generateValidators} from "../utils/validator";
 import {generateState} from "../utils/state";
+import {setInterval} from "timers";
 
 type int = number;
 
@@ -510,5 +511,32 @@ describe("getPreviousEpoch", () => {
     // const expected: Epoch = new BN(1.441151881e17);
     const result = getPreviousEpoch(state);
     assert(result.eq(expected), `expected: ${expected}, result: ${result}`);
+  });
+});
+
+describe("getTotalBalance", () => {
+
+  it("should return correct balances", () => {
+    const num = 5;
+    const validators: Validator[] = generateValidators(num);
+    const balances: uint64[] = Array.from({length: num}, () => new BN(500));
+    const state: BeaconState = generateState({ validatorRegistry: validators, validatorBalances: balances });
+    const validatorIndices: ValidatorIndex[] = Array.from({length: num}, (_, i) => new BN(i));
+
+    const result = getTotalBalance(state, validatorIndices);
+    const expected = new BN(num).muln(500);
+    assert(result.eq(expected), `Expected: ${expected} :: Result: ${result}`);
+  });
+
+  it("should return correct balances", () => {
+    const num = 5;
+    const validators: Validator[] = generateValidators(num);
+    const balances: uint64[] = Array.from({length: num}, () => new BN(0));
+    const state: BeaconState = generateState({ validatorRegistry: validators, validatorBalances: balances });
+    const validatorIndices: ValidatorIndex[] = Array.from({length: num}, (_, i) => new BN(i));
+
+    const result = getTotalBalance(state, validatorIndices);
+    const expected = new BN(num).muln(0);
+    assert(result.eq(expected), `Expected: ${expected} :: Result: ${result}`);
   });
 });
