@@ -376,5 +376,5 @@ function processSlashing(state: BeaconState): void {
   const currentEpoch = getCurrentEpoch(state);
   const activeValidatorIndices = getActiveValidatorIndices(state.validatorRegistry, currentEpoch);
   const totalBalance = activeValidatorIndices.reduce((acc, cur) => acc.add(getEffectiveBalance(state, cur)), new BN(0));
-  
+
 }
